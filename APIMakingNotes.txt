@@ -1,0 +1,59 @@
+﻿STEP BY STEP PROCEDURE TO MAKE .NET 6 WEB API WITH ENTITY FRAMEWORK
+===================================================================
+
+Open package manager console:
+1. Get what SDK is running	
+	PM> dotnet --list-sdks
+	Mine was 7.0.203
+
+2. Install the corresponding packages (in turn) to use EF
+	PM> dotnet add package Microsoft.EntityFrameworkCore --version 7.0.0
+	PM> dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 7.0.0
+	PM> dotnet add package Microsoft.EntityFrameworkCore.Tools --version 7.0.0
+	PM> dotnet tool install --global dotnet-ef --version 7.0.0
+
+3. Check the installation
+	PM> dotnet tool list --global
+	In my case it returned
+	Package Id      Version      Commands 
+	--------------------------------------
+	dotnet-ef       7.0.0        dotnet-ef
+
+4. Run the scaffold command to generate database classes
+	PM> dotnet ef dbcontext scaffold "Data Source=.\sqlexpress;Initial Catalog=APIDB;Integrated Security=True; TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -o Models
+
+	The basic command is: dotnet ef dbcontext scaffold
+	After entering it will ask for: 
+		connection string, 
+		provider as Microsoft.EntityFrameworkCore.SqlServer, 
+		and the output directory which is Models in our case
+		we can also change name of our context file by giving our own nake in --context parameter
+
+5. All models and apidbcontext class was now generated in Models folder. Models for tables and views were generated.
+
+6. Now go to Program.cs file and do the following
+	using Microsoft.EntityFrameworkCore;
+
+	var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+	builder.Services.AddDbContext<ApidbContext>(options => options.UseSqlServer(connectionString));
+
+7. And in appsettings.json file do the following
+	  "ConnectionStrings": {
+	    "DefaultConnection": "Data Source=.\\sqlexpress;Initial Catalog=APIDB;Integrated Security=True; TrustServerCertificate=True;"
+  		},
+8. Make a controller and enjoy your database
+
+        private readonly ApidbContext _dbContext;
+
+        public AlWahabAPIController(ApidbContext dbContext)
+        {
+            _dbContext = dbContext;
+        }
+
+        [HttpGet]
+        public IEnumerable<ViewStudent> Get()
+        {
+            return _dbContext.ViewStudents;
+        }
+9. And you are all good to go.
